@@ -26,10 +26,7 @@ if ($taskFilter !== '') {
     $params[] = "%$taskFilter%";
 }
 
-$whereSQL = '';
-if (count($whereClauses) > 0) {
-    $whereSQL = 'WHERE ' . implode(' AND ', $whereClauses);
-}
+$whereSQL = count($whereClauses) > 0 ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
 
 // Compte total
 $countStmt = $pdo->prepare("
@@ -41,7 +38,7 @@ $countStmt->execute($params);
 $total = $countStmt->fetchColumn();
 $totalPages = ceil($total / $limit);
 
-// Tâches paginées
+// Requête paginée
 $stmt = $pdo->prepare("
     SELECT t.*, u.username 
     FROM tasks t
@@ -52,6 +49,9 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute($params);
 $tasks = $stmt->fetchAll();
+
+// Paramètres pour liens de pagination
+$linkQuery = '&user=' . urlencode($userFilter) . '&task=' . urlencode($taskFilter);
 ?>
 
 <div class="container mt-5">
@@ -70,7 +70,7 @@ $tasks = $stmt->fetchAll();
         </div>
     </form>
 
-    <!-- Tableau -->
+    <!-- Tableau des tâches -->
     <table class="table table-bordered table-hover">
         <thead class="table-light">
         <tr>
@@ -90,30 +90,55 @@ $tasks = $stmt->fetchAll();
         </tbody>
     </table>
 
-    <!-- Pagination -->
+    <!-- Pagination intelligente -->
     <?php if ($totalPages > 1): ?>
         <nav>
-            <ul class="pagination">
-                <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                    <li class="page-item <?= ($p === $page) ? 'active' : '' ?>">
-                        <a class="page-link" href="?page=<?= $p ?>&user=<?= urlencode($userFilter) ?>&task=<?= urlencode($taskFilter) ?>">
-                            <?= $p ?>
-                        </a>
-                    </li>
-                <?php endfor; ?>
+            <ul class="pagination justify-content-center">
+                <?php
+                $visiblePages = 2;
+
+                // Affiche première page
+                if ($page > 1) {
+                    echo '<li class="page-item"><a class="page-link" href="?page=1' . $linkQuery . '">1</a></li>';
+                    if ($page > $visiblePages + 2) {
+                        echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                    }
+                }
+
+                // Affiche les pages autour
+                for ($i = max(2, $page - $visiblePages); $i <= min($totalPages - 1, $page + $visiblePages); $i++) {
+                    echo '<li class="page-item ' . ($i === $page ? 'active' : '') . '">
+                            <a class="page-link" href="?page=' . $i . $linkQuery . '">' . $i . '</a>
+                          </li>';
+                }
+
+                // Affiche dernière page
+                if ($page < $totalPages - $visiblePages - 1) {
+                    if ($page + $visiblePages < $totalPages - 1) {
+                        echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                    }
+                    echo '<li class="page-item"><a class="page-link" href="?page=' . $totalPages . $linkQuery . '">' . $totalPages . '</a></li>';
+                }
+
+                // Active page 1/last si nécessaire
+                if ($page === 1) {
+                    echo '<li class="page-item active"><span class="page-link">1</span></li>';
+                }
+                if ($page === $totalPages && $totalPages > 1) {
+                    echo '<li class="page-item active"><span class="page-link">' . $totalPages . '</span></li>';
+                }
+                ?>
             </ul>
         </nav>
     <?php endif; ?>
 
     <hr class="my-4">
 
-    <!-- Gestion des utilisateurs -->
+    <!-- Lien gestion étudiants -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>👥 Manage Students</h4>
         <a href="manage_users.php" class="btn btn-outline-success">➕ Add New Student</a>
     </div>
-
-    <!-- Liste à suivre : gérée dans manage_users.php -->
 </div>
 
 <?php include '../includes/footer.php'; ?>

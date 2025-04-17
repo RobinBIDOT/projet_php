@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Récupération des étudiants
 $stmt = $pdo->query("SELECT * FROM users WHERE role = 'user' ORDER BY username ASC");
 $students = $stmt->fetchAll();
 ?>
@@ -32,7 +31,7 @@ $students = $stmt->fetchAll();
         <tr>
             <th>Username</th>
             <th>Created At</th>
-            <th style="width: 200px">Actions</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -41,15 +40,17 @@ $students = $stmt->fetchAll();
                 <td><?= htmlspecialchars($student['username']) ?></td>
                 <td><?= $student['created_at'] ?></td>
                 <td>
+                    <a href="user_documents.php?id=<?= $student['id'] ?>" class="btn btn-sm btn-outline-info">📁 Docs</a>
+
                     <form method="POST" action="../actions/edit_user.php" class="d-inline">
                         <input type="hidden" name="id" value="<?= $student['id'] ?>">
                         <input type="text" name="username" value="<?= htmlspecialchars($student['username']) ?>" class="form-control form-control-sm d-inline-block w-auto" required>
-                        <button type="submit" class="btn btn-warning btn-sm">✏️ Update</button>
+                        <button type="submit" class="btn btn-warning btn-sm">✏️</button>
                     </form>
 
-                    <form method="POST" action="../actions/delete_user.php" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                    <form method="POST" action="../actions/delete_user.php" class="d-inline" onsubmit="return confirm('Delete this user?');">
                         <input type="hidden" name="id" value="<?= $student['id'] ?>">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+                        <button type="submit" class="btn btn-danger btn-sm">🗑</button>
                     </form>
                 </td>
             </tr>

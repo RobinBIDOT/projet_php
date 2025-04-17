@@ -97,16 +97,49 @@ $doneTasks = $doneStmt->fetchAll();
 
     <!-- Pagination -->
     <?php if ($totalPages > 1): ?>
+        <?php
+        $visiblePages = 2;
+        $linkQuery = '&search=' . urlencode($search ?? '') . '&sort=' . urlencode($sort ?? '');
+        ?>
         <nav>
-            <ul class="pagination">
-                <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                    <li class="page-item <?= ($p == $page) ? 'active' : '' ?>">
-                        <a class="page-link" href="?page=<?= $p ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
-                    </li>
-                <?php endfor; ?>
+            <ul class="pagination justify-content-center">
+                <?php
+                // Affiche la première page
+                if ($page > 1) {
+                    echo '<li class="page-item"><a class="page-link" href="?page=1' . $linkQuery . '">1</a></li>';
+                    if ($page > $visiblePages + 2) {
+                        echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                    }
+                }
+
+                // Affiche les pages autour de la page actuelle
+                for ($i = max(2, $page - $visiblePages); $i <= min($totalPages - 1, $page + $visiblePages); $i++) {
+                    echo '<li class="page-item ' . ($i == $page ? 'active' : '') . '">
+                        <a class="page-link" href="?page=' . $i . $linkQuery . '">' . $i . '</a>
+                      </li>';
+                }
+
+                // Affiche la dernière page
+                if ($page < $totalPages - $visiblePages - 1) {
+                    if ($page + $visiblePages < $totalPages - 1) {
+                        echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                    }
+                    echo '<li class="page-item"><a class="page-link" href="?page=' . $totalPages . $linkQuery . '">' . $totalPages . '</a></li>';
+                }
+
+                // Met en valeur la page actuelle si c'est 1 ou totalPages
+                if ($page == 1) {
+                    echo '<li class="page-item active"><span class="page-link">1</span></li>';
+                }
+                if ($page == $totalPages && $totalPages > 1) {
+                    echo '<li class="page-item active"><span class="page-link">' . $totalPages . '</span></li>';
+                }
+                ?>
             </ul>
         </nav>
     <?php endif; ?>
+
+
 
     <!-- Tâches terminées -->
     <?php if (count($doneTasks) > 0): ?>
