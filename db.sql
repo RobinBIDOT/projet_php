@@ -23,6 +23,17 @@ CREATE TABLE tasks (
                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE documents (
+                           id INT AUTO_INCREMENT PRIMARY KEY,
+                           user_id INT NOT NULL,
+                           filename VARCHAR(255) NOT NULL,
+                           original_name VARCHAR(255) NOT NULL,
+                           mime_type VARCHAR(100),
+                           uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+ALTER TABLE documents ADD COLUMN category VARCHAR(100) DEFAULT NULL;
+
 -- 🔐 Mots de passe Bcrypt
 -- admin123 → $2y$10$RpJAjBnAAVhDnHbG/9QqF.6k7sn/NmR5YkbpnMH03KcNBTe0M7zAm
 -- etudiant123 → $2y$10$6duRZIvDc2rL4HPl5IXtkeLxN9uPU4mjR6eqHLHo7bmj1ftmLmpKa
